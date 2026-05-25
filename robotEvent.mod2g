@@ -1,0 +1,38 @@
+use robot as knowledge.
+
+module robotEvent {
+	% Update the agent's state of movement.
+	forall percept(state(NewState)), bel(state(State), State \= NewState)
+		do delete(state(State)) + insert(state(NewState)).
+		
+	% Exercise 1c. Add rules for send on change and send always percepts.	
+	% Record the current position.
+	if bel(at(PlaceID)), not(percept(at(PlaceID))) then delete(at(PlaceID)).
+	if percept(at(PlaceID)), not(bel(at(PlaceID))) then insert(at(PlaceID)).
+	
+	% Records that a block is nearby.
+	if bel(atBlock(BlockID)), not(percept(atBlock(BlockID))) then delete(atBlock(BlockID)).
+	if percept(atBlock(BlockID)), not(bel(atBlock(BlockID))) then insert(atBlock(BlockID)).
+	
+	% Record that in the current room there are BlockIDs with color ColorID.
+	if bel(color(BlockID, ColorID)), not(percept(color(BlockID, ColorID))) then insert(color(BlockID, ColorID)).
+	if percept(color(BlockID, ColorID)), not(bel(color(BlockID, ColorID))) then insert(color(BlockID, ColorID)).
+
+	% Record that the agent is holding a block.
+	if bel(holding(BlockID)), not(percept(holding(BlockID))) then delete(holding(BlockID)).
+	if percept(holding(BlockID)), not(bel(holding(BlockID))) then insert(holding(BlockID)).
+	
+	% Record the index of the current needed block.
+	if bel(sequenceIndex(Index)), not(percept(sequenceIndex(Index))) then delete(sequenceIndex(Index)).
+	if percept(sequenceIndex(Index)), not(bel(sequenceIndex(Index))) then insert(sequenceIndex(Index)).
+	
+	% Record when we are entering or leaving a room.
+	if bel(in(Place)), not(percept(in(Place))) then delete(in(Place)).
+	if percept(in(Place)), not(bel(in(Place))) then insert(in(Place)).
+	
+	% when in a place PlaceID stores that for all colors ColorID perceived their blocks belong to that PlaceID. 
+	% Also checks that the block is not being held and that it is not already placed elsewhere.
+	% Needs to be after "in" so that the correct place is perceived.
+	forall bel(in(PlaceID)), bel(color(BlockID, ColorID)), not(bel(holding(BlockID))), not(bel(block(BlockID, _, _))) 
+		do insert(block(BlockID, ColorID, PlaceID)).
+}

@@ -1,0 +1,41 @@
+use robot as knowledge.
+use robotActions.
+exit=nogoals.
+
+% Exercise 2b. Add the nextColor(ColorId) macro here.
+% The next color is the color at the Xth position of the sequence where X is the length of the delivered list
+define nextColor(ColorId) as goal(sequence(Seq)), bel(delivered(Del)), bel(length(Del, X)), bel(nth0(X, Seq, ColorId)).
+
+module robotMain {
+	% Exercise 4d. Add a rule to put down the block.
+	% if the agent is in the dropzone and it is holding a block, put it down. (commented to be overwritted by Ex. 5)
+	% if bel(in('DropZone')), bel(holding(_)) then putDown.
+	
+	% Exercise 5. Add update logic for the sequence predicate.
+	% if the agent is in the dropzone, holding a certain BlockID then this is added to a New_Del which is Del + the now element.
+	% Of course, the block is also put down.
+	if bel(in('DropZone')), bel(holding(BlockID)), bel(color(BlockID, ColorID)), bel(delivered(Del)), bel(append(Del, [ColorID], New_Del)) 
+		then putDown + delete(delivered(Del)) + insert(delivered(New_Del)).
+	
+	% Exercise 4c. Add a rule to go to the dropzone.
+	% If the agent is holding a block the go to the DropZone
+	if bel(holding(_)) then goTo('DropZone').
+	
+	% Exercise 4b. Add a rule to pick up a block.
+	% If the block si of the right color, pick it up and remove its position from belief base.
+	if nextColor(ColorID), bel(block(BlockID, ColorID, PlaceID))
+		then pickUp(BlockID) + delete(block(BlockID, ColorID, PlaceID)).
+		
+	% Exercise 4a. Add a rule to go to a block.
+	% if it is of the right color and not in the DropZone, go to the block.
+	if nextColor(ColorID), bel(block(BlockID, ColorID, _)), not(bel(in('DropZone')))
+		then goToBlock(BlockID).
+	
+	% Exercise 2c. Add a rule to go to a room where a block of the right colour can be found.
+	% If the is a place with the wanted ColorID in a certain PlaceID, go to PlaceID.
+	if nextColor(ColorID), bel(block(_, ColorID, PlaceID))
+		then goTo(PlaceID).
+	
+	if goal(in(Place)) 
+		then goTo(Place).
+}
